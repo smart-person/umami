@@ -1,5 +1,7 @@
 # umami
 
+Force overwrite old repo
+
 Umami is a simple, fast, website analytics alternative to Google Analytics.
 
 ## Getting started

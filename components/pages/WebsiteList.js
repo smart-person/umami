@@ -1,24 +1,13 @@
-import React, { useState } from 'react';
 import { FormattedMessage } from 'react-intl';
 import Link from 'components/common/Link';
 import WebsiteChart from 'components/metrics/WebsiteChart';
 import Page from 'components/layout/Page';
 import EmptyPlaceholder from 'components/common/EmptyPlaceholder';
-import Button from 'components/common/Button';
-import useFetch from 'hooks/useFetch';
 import Arrow from 'assets/arrow-right.svg';
-import Chart from 'assets/chart-bar.svg';
 import styles from './WebsiteList.module.css';
 
-export default function WebsiteList({ userId }) {
-  const { data } = useFetch('/api/websites', { params: { user_id: userId } });
-  const [showCharts, setShowCharts] = useState(true);
-
-  if (!data) {
-    return null;
-  }
-
-  if (data.length === 0) {
+export default function WebsiteList({ websites, showCharts, limit }) {
+  if (websites.length === 0) {
     return (
       <Page>
         <EmptyPlaceholder
@@ -38,25 +27,20 @@ export default function WebsiteList({ userId }) {
   }
 
   return (
-    <Page>
-      <div className={styles.menubar}>
-        <Button
-          tooltip={<FormattedMessage id="message.toggle-charts" defaultMessage="Toggle charts" />}
-          icon={<Chart />}
-          onClick={() => setShowCharts(!showCharts)}
-        />
-      </div>
-      {data.map(({ website_id, name, domain }) => (
-        <div key={website_id} className={styles.website}>
-          <WebsiteChart
-            websiteId={website_id}
-            title={name}
-            domain={domain}
-            showChart={showCharts}
-            showLink
-          />
-        </div>
-      ))}
-    </Page>
+    <div>
+      {websites.map(({ website_id, name, domain }, index) =>
+        index < limit ? (
+          <div key={website_id} className={styles.website}>
+            <WebsiteChart
+              websiteId={website_id}
+              title={name}
+              domain={domain}
+              showChart={showCharts}
+              showLink
+            />
+          </div>
+        ) : null,
+      )}
+    </div>
   );
 }

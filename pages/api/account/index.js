@@ -23,10 +23,7 @@ export default async (req, res) => {
 
         // Only admin can change these fields
         if (current_user_is_admin) {
-          // Cannot change username of admin
-          if (username !== 'admin') {
-            data.username = username;
-          }
+          data.username = username;
           data.is_admin = is_admin;
         }
 

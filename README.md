@@ -1,12 +1,16 @@
 # umami
 
-Force overwrite old repo
-
-Umami is a simple, fast, website analytics alternative to Google Analytics.
+Umami is a simple, fast, privacy-focused alternative to Google Analytics.
 
 ## Getting started
 
 A detailed getting started guide can be found at [https://umami.is/docs/](https://umami.is/docs/)
+
+A fast way to get up and running is to use Railway
+
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/template/umami)
+
+See [Running on Railway](https://umami.is/docs/running-on-railway) to get started.
 
 ## Installing from source
 
@@ -102,6 +106,13 @@ To get the latest features, simply do a pull, install any new dependencies, and 
 git pull
 npm install
 npm run build
+```
+
+To update the Docker image, simply pull the new images and rebuild:
+
+```bash
+docker-compose pull
+docker-compose up --force-recreate
 ```
 
 ## License

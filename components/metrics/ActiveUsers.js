@@ -3,19 +3,20 @@ import { FormattedMessage } from 'react-intl';
 import classNames from 'classnames';
 import useFetch from 'hooks/useFetch';
 import Dot from 'components/common/Dot';
-import { TOKEN_HEADER } from 'lib/constants';
-import useShareToken from 'hooks/useShareToken';
 import styles from './ActiveUsers.module.css';
 
-export default function ActiveUsers({ websiteId, className }) {
-  const shareToken = useShareToken();
-  const { data } = useFetch(`/api/website/${websiteId}/active`, {
-    interval: 60000,
-    headers: { [TOKEN_HEADER]: shareToken?.token },
+export default function ActiveUsers({ websiteId, className, value, interval = 60000 }) {
+  const url = websiteId ? `/website/${websiteId}/active` : null;
+  const { data } = useFetch(url, {
+    interval,
   });
   const count = useMemo(() => {
-    return data?.[0]?.x || 0;
-  }, [data]);
+    if (websiteId) {
+      return data?.[0]?.x || 0;
+    }
+
+    return value !== undefined ? value : 0;
+  }, [data, value, websiteId]);
 
   if (count === 0) {
     return null;

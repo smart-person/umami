@@ -4,7 +4,6 @@ const pkg = require('./package.json');
 module.exports = {
   env: {
     VERSION: pkg.version,
-    FORCE_SSL: !!process.env.FORCE_SSL,
   },
   basePath: process.env.BASE_PATH,
   eslint: {
@@ -22,7 +21,7 @@ module.exports = {
   async headers() {
     return [
       {
-        source: '/umami.js',
+        source: `/(.*\\.js)`,
         headers: [
           {
             key: 'Cache-Control',

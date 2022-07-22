@@ -14,17 +14,17 @@ jobs:
         db-type: [postgresql, mysql]
 
     steps:
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-    - name: Set env
-      run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+      - name: Set env
+        run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
 
-    - uses: mr-smithers-excellent/docker-build-push@v5
-      name: Build & push Docker image for ${{ matrix.db-type }}
-      with:
-        image: umami
-        tags: ${{ matrix.db-type }}-${{ env.RELEASE_VERSION }}, ${{ matrix.db-type }}-latest
-        buildArgs: DATABASE_TYPE=${{ matrix.db-type }}
-        registry: ghcr.io/${{ github.actor }}
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: mr-smithers-excellent/docker-build-push@v5
+        name: Build & push Docker image for ${{ matrix.db-type }}
+        with:
+          image: umami
+          tags: ${{ matrix.db-type }}-${{ env.RELEASE_VERSION }}, ${{ matrix.db-type }}-latest
+          buildArgs: DATABASE_TYPE=${{ matrix.db-type }}
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}

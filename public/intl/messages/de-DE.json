@@ -247,6 +247,12 @@
       "value": "Neues Passwort"
     }
   ],
+  "label.none": [
+    {
+      "type": 0,
+      "value": "None"
+    }
+  ],
   "label.owner": [
     {
       "type": 0,
@@ -334,7 +340,7 @@
   "label.theme": [
     {
       "type": 0,
-      "value": "Theme"
+      "value": "Thema"
     }
   ],
   "label.this-month": [
@@ -704,7 +710,7 @@
   "metrics.device.mobile": [
     {
       "type": 0,
-      "value": "Mobiltelefon"
+      "value": "Handy"
     }
   ],
   "metrics.device.tablet": [
@@ -729,12 +735,6 @@
     {
       "type": 0,
       "value": "Kombiniert"
-    }
-  ],
-  "metrics.filter.domain-only": [
-    {
-      "type": 0,
-      "value": "Nur diese Domain"
     }
   ],
   "metrics.filter.raw": [
@@ -771,6 +771,12 @@
     {
       "type": 0,
       "value": "Referrer"
+    }
+  ],
+  "metrics.screens": [
+    {
+      "type": 0,
+      "value": "Bildschirmauflösungen"
     }
   ],
   "metrics.unique-visitors": [

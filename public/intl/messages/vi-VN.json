@@ -20,7 +20,7 @@
   "label.administrator": [
     {
       "type": 0,
-      "value": "Quản Trị"
+      "value": "Quản trị"
     }
   ],
   "label.all": [
@@ -32,19 +32,19 @@
   "label.all-events": [
     {
       "type": 0,
-      "value": "Tất cả events"
+      "value": "Tất cả sự kiện"
     }
   ],
   "label.all-time": [
     {
       "type": 0,
-      "value": "All time"
+      "value": "Toàn thời gian"
     }
   ],
   "label.all-websites": [
     {
       "type": 0,
-      "value": "Tất cả websites"
+      "value": "Tất cả website"
     }
   ],
   "label.back": [
@@ -104,7 +104,7 @@
   "label.default-date-range": [
     {
       "type": 0,
-      "value": "Phạm vi ngày mặc định"
+      "value": "Khoảng thời gian mặc định"
     }
   ],
   "label.delete": [
@@ -116,19 +116,19 @@
   "label.delete-account": [
     {
       "type": 0,
-      "value": "Xoá tài khoản"
+      "value": "Xóa tài khoản"
     }
   ],
   "label.delete-website": [
     {
       "type": 0,
-      "value": "Xáo website"
+      "value": "Xóa website"
     }
   ],
   "label.dismiss": [
     {
       "type": 0,
-      "value": "Laoị trừ"
+      "value": "Loại trừ"
     }
   ],
   "label.domain": [
@@ -239,10 +239,16 @@
       "value": "Mật khẩu mới"
     }
   ],
+  "label.none": [
+    {
+      "type": 0,
+      "value": "None"
+    }
+  ],
   "label.owner": [
     {
       "type": 0,
-      "value": "Owner"
+      "value": "Chủ sở hữu"
     }
   ],
   "label.password": [
@@ -326,7 +332,7 @@
   "label.theme": [
     {
       "type": 0,
-      "value": "Theme"
+      "value": "Giao diện"
     }
   ],
   "label.this-month": [
@@ -454,7 +460,7 @@
   "message.copied": [
     {
       "type": 0,
-      "value": "Đã copy!"
+      "value": "Đã sao chép!"
     }
   ],
   "message.delete-warning": [
@@ -484,7 +490,7 @@
   "message.go-to-settings": [
     {
       "type": 0,
-      "value": "Đến cài đặt"
+      "value": "Chuyển tới cài đặt"
     }
   ],
   "message.incorrect-username-password": [
@@ -554,7 +560,7 @@
   "message.powered-by": [
     {
       "type": 0,
-      "value": "Bản quyền bởi "
+      "value": "Bản quyền thuộc về "
     },
     {
       "type": 1,
@@ -590,7 +596,7 @@
   "message.toggle-charts": [
     {
       "type": 0,
-      "value": "Toggle charts"
+      "value": "Bật/tắt biểu đồ"
     }
   ],
   "message.track-stats": [
@@ -715,12 +721,6 @@
       "value": "Kết hợp"
     }
   ],
-  "metrics.filter.domain-only": [
-    {
-      "type": 0,
-      "value": "Chỉ tên miền"
-    }
-  ],
   "metrics.filter.raw": [
     {
       "type": 0,
@@ -730,7 +730,7 @@
   "metrics.languages": [
     {
       "type": 0,
-      "value": "Languages"
+      "value": "Ngôn ngữ"
     }
   ],
   "metrics.operating-systems": [
@@ -757,10 +757,16 @@
       "value": "Liên kết giới thiệu"
     }
   ],
+  "metrics.screens": [
+    {
+      "type": 0,
+      "value": "Screens"
+    }
+  ],
   "metrics.unique-visitors": [
     {
       "type": 0,
-      "value": "Khách truy cập duy nhất"
+      "value": "Khách truy cập một lần"
     }
   ],
   "metrics.views": [

@@ -1,26 +1,20 @@
-import React from 'react';
 import classNames from 'classnames';
+import { Banner, Loading } from 'react-basics';
+import useMessages from 'hooks/useMessages';
 import styles from './Page.module.css';
 
-export default class Page extends React.Component {
-  getSnapshotBeforeUpdate() {
-    if (window.pageXOffset === 0 && window.pageYOffset === 0) return null;
+export function Page({ className, error, loading, children }) {
+  const { formatMessage, messages } = useMessages();
 
-    // Return the scrolled position as the snapshot value
-    return { x: window.pageXOffset, y: window.pageYOffset };
+  if (error) {
+    return <Banner variant="error">{formatMessage(messages.error)}</Banner>;
   }
 
-  /* eslint-disable no-unused-vars */
-  componentDidUpdate(prevProps, prevState, snapshot) {
-    if (snapshot !== null) {
-      // Restore the scrolled position after re-rendering
-      window.scrollTo(snapshot.x, snapshot.y);
-    }
+  if (loading) {
+    return <Loading icon="spinner" size="xl" position="page" />;
   }
-  /* eslint-enable no-unused-vars */
 
-  render() {
-    const { className, children } = this.props;
-    return <div className={classNames(styles.page, className)}>{children}</div>;
-  }
+  return <div className={classNames(styles.page, className)}>{children}</div>;
 }
+
+export default Page;

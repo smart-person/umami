@@ -1,11 +1,11 @@
+/* eslint-disable no-console */
 require('dotenv').config();
-const bcrypt = require('bcryptjs');
+const { hashPassword } = require('next-basics');
 const chalk = require('chalk');
 const prompts = require('prompts');
 const { PrismaClient } = require('@prisma/client');
 
 const prisma = new PrismaClient();
-const SALT_ROUNDS = 10;
 
 const runQuery = async query => {
   return query.catch(e => {
@@ -13,9 +13,9 @@ const runQuery = async query => {
   });
 };
 
-const updateAccountByUsername = (username, data) => {
+const updateUserByUsername = (username, data) => {
   return runQuery(
-    prisma.account.update({
+    prisma.user.update({
       where: {
         username,
       },
@@ -24,13 +24,9 @@ const updateAccountByUsername = (username, data) => {
   );
 };
 
-const hashPassword = password => {
-  return bcrypt.hashSync(password, SALT_ROUNDS);
-};
-
 const changePassword = async (username, newPassword) => {
   const password = hashPassword(newPassword);
-  return updateAccountByUsername(username, { password });
+  return updateUserByUsername(username, { password });
 };
 
 const getUsernameAndPassword = async () => {
@@ -44,7 +40,7 @@ const getUsernameAndPassword = async () => {
     questions.push({
       type: 'text',
       name: 'username',
-      message: 'Enter account to change password',
+      message: 'Enter user to change password',
     });
   }
   if (!password) {
@@ -88,7 +84,7 @@ const getUsernameAndPassword = async () => {
     console.log('Password changed for user', chalk.greenBright(username));
   } catch (error) {
     if (error.meta.cause.includes('Record to update not found')) {
-      console.log('Account not found:', chalk.redBright(username));
+      console.log('User not found:', chalk.redBright(username));
     } else {
       throw error;
     }

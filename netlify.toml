@@ -1,2 +1,5 @@
 [functions]
-included_files = ["public/geo/*.mmdb"]
+included_files = ["node_modules/.geo/**"]
+
+[[plugins]]
+package = "@netlify/plugin-nextjs"

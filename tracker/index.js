@@ -1,61 +1,52 @@
-import { doNotTrack, hook } from '../lib/web';
-import { removeTrailingSlash } from '../lib/url';
-
 (window => {
   const {
     screen: { width, height },
     navigator: { language },
-    location: { hostname, pathname, search },
+    location,
     localStorage,
     document,
     history,
   } = window;
+  const { hostname, pathname, search } = location;
+  const { currentScript } = document;
 
-  const script = document.querySelector('script[data-website-id]');
+  if (!currentScript) return;
 
-  if (!script) return;
-
-  const attr = script.getAttribute.bind(script);
-  const website = attr('data-website-id');
-  const hostUrl = attr('data-host-url');
-  const autoTrack = attr('data-auto-track') !== 'false';
-  const dnt = attr('data-do-not-track');
-  const cssEvents = attr('data-css-events') !== 'false';
-  const domain = attr('data-domains') || '';
+  const _data = 'data-';
+  const _false = 'false';
+  const attr = currentScript.getAttribute.bind(currentScript);
+  const website = attr(_data + 'website-id');
+  const hostUrl = attr(_data + 'host-url');
+  const autoTrack = attr(_data + 'auto-track') !== _false;
+  const dnt = attr(_data + 'do-not-track');
+  const domain = attr(_data + 'domains') || '';
   const domains = domain.split(',').map(n => n.trim());
-
-  const eventClass = /^umami--([a-z]+)--([\w]+[\w-]*)$/;
-  const eventSelect = "[class*='umami--']";
-
-  const trackingDisabled = () =>
-    (localStorage && localStorage.getItem('umami.disabled')) ||
-    (dnt && doNotTrack()) ||
-    (domain && !domains.includes(hostname));
-
   const root = hostUrl
-    ? removeTrailingSlash(hostUrl)
-    : script.src.split('/').slice(0, -1).join('/');
+    ? hostUrl.replace(/\/$/, '')
+    : currentScript.src.split('/').slice(0, -1).join('/');
+  const endpoint = `${root}/api/send`;
   const screen = `${width}x${height}`;
-  const listeners = {};
-  let currentUrl = `${pathname}${search}`;
-  let currentRef = document.referrer;
-  let cache;
+  const eventRegex = /data-umami-event-([\w-_]+)/;
+  const eventNameAttribute = _data + 'umami-event';
+  const delayDuration = 300;
 
-  /* Collect metrics */
+  /* Helper functions */
 
-  const post = (url, data, callback) => {
-    const req = new XMLHttpRequest();
-    req.open('POST', url, true);
-    req.setRequestHeader('Content-Type', 'application/json');
-    if (cache) req.setRequestHeader('x-umami-cache', cache);
+  const hook = (_this, method, callback) => {
+    const orig = _this[method];
 
-    req.onreadystatechange = () => {
-      if (req.readyState === 4) {
-        callback(req.response);
-      }
+    return (...args) => {
+      callback.apply(null, args);
+
+      return orig.apply(_this, args);
     };
+  };
 
-    req.send(JSON.stringify(data));
+  const getPath = url => {
+    if (url.substring(0, 4) === 'http') {
+      return '/' + url.split('/').splice(3).join('/');
+    }
+    return url;
   };
 
   const getPayload = () => ({
@@ -63,157 +54,186 @@ import { removeTrailingSlash } from '../lib/url';
     hostname,
     screen,
     language,
+    title,
     url: currentUrl,
+    referrer: currentRef,
   });
 
-  const assign = (a, b) => {
-    Object.keys(b).forEach(key => {
-      a[key] = b[key];
-    });
-    return a;
+  /* Tracking functions */
+
+  const doNotTrack = () => {
+    const { doNotTrack, navigator, external } = window;
+
+    const msTrackProtection = 'msTrackingProtectionEnabled';
+    const msTracking = () => {
+      return external && msTrackProtection in external && external[msTrackProtection]();
+    };
+
+    const dnt = doNotTrack || navigator.doNotTrack || navigator.msDoNotTrack || msTracking();
+
+    return dnt == '1' || dnt === 'yes';
   };
 
-  const collect = (type, payload) => {
-    if (trackingDisabled()) return;
-
-    post(
-      `${root}/api/collect`,
-      {
-        type,
-        payload,
-      },
-      res => (cache = res),
-    );
-  };
-
-  const trackView = (url = currentUrl, referrer = currentRef, uuid = website) => {
-    collect(
-      'pageview',
-      assign(getPayload(), {
-        website: uuid,
-        url,
-        referrer,
-      }),
-    );
-  };
-
-  const trackEvent = (event_value, event_type = 'custom', url = currentUrl, uuid = website) => {
-    collect(
-      'event',
-      assign(getPayload(), {
-        website: uuid,
-        url,
-        event_type,
-        event_value,
-      }),
-    );
-  };
-
-  /* Handle events */
-
-  const sendEvent = (value, type) => {
-    const payload = getPayload();
-
-    payload.event_type = type;
-    payload.event_value = value;
-
-    const data = JSON.stringify({
-      type: 'event',
-      payload,
-    });
-
-    fetch(`${root}/api/collect`, {
-      method: 'POST',
-      body: data,
-      keepalive: true,
-    });
-  };
-
-  const addEvents = node => {
-    const elements = node.querySelectorAll(eventSelect);
-    Array.prototype.forEach.call(elements, addEvent);
-  };
-
-  const addEvent = element => {
-    (element.getAttribute('class') || '').split(' ').forEach(className => {
-      if (!eventClass.test(className)) return;
-
-      const [, type, value] = className.split('--');
-      const listener = listeners[className]
-        ? listeners[className]
-        : (listeners[className] = () => {
-            if (element.tagName === 'A') {
-              sendEvent(value, type);
-            } else {
-              trackEvent(value, type);
-            }
-          });
-
-      element.addEventListener(type, listener, true);
-    });
-  };
-
-  /* Handle history changes */
+  const trackingDisabled = () =>
+    (localStorage && localStorage.getItem('umami.disabled')) ||
+    (dnt && doNotTrack()) ||
+    (domain && !domains.includes(hostname));
 
   const handlePush = (state, title, url) => {
     if (!url) return;
 
     currentRef = currentUrl;
-    const newUrl = url.toString();
-
-    if (newUrl.substring(0, 4) === 'http') {
-      currentUrl = '/' + newUrl.split('/').splice(3).join('/');
-    } else {
-      currentUrl = newUrl;
-    }
+    currentUrl = getPath(url.toString());
 
     if (currentUrl !== currentRef) {
-      trackView();
+      setTimeout(track, delayDuration);
     }
   };
 
-  const observeDocument = () => {
-    const monitorMutate = mutations => {
-      mutations.forEach(mutation => {
-        const element = mutation.target;
-        addEvent(element);
-        addEvents(element);
-      });
+  const handleClick = () => {
+    const trackElement = el => {
+      const attr = el.getAttribute.bind(el);
+      const eventName = attr(eventNameAttribute);
+
+      if (eventName) {
+        const eventData = {};
+
+        el.getAttributeNames().forEach(name => {
+          const match = name.match(eventRegex);
+
+          if (match) {
+            eventData[match[1]] = attr(name);
+          }
+        });
+
+        return track(eventName, { data: eventData });
+      }
+      return Promise.resolve();
     };
 
-    const observer = new MutationObserver(monitorMutate);
-    observer.observe(document, { childList: true, subtree: true });
+    const callback = e => {
+      const findATagParent = (rootElem, maxSearchDepth) => {
+        let currentElement = rootElem;
+        for (let i = 0; i < maxSearchDepth; i++) {
+          if (currentElement.tagName === 'A') {
+            return currentElement;
+          }
+          currentElement = currentElement.parentElement;
+          if (!currentElement) {
+            return null;
+          }
+        }
+        return null;
+      };
+
+      const el = e.target;
+      const anchor = el.tagName === 'A' ? el : findATagParent(el, 10);
+
+      if (anchor) {
+        const { href, target } = anchor;
+        const external =
+          target === '_blank' ||
+          e.ctrlKey ||
+          e.shiftKey ||
+          e.metaKey ||
+          (e.button && e.button === 1);
+        const eventName = anchor.getAttribute(eventNameAttribute);
+
+        if (eventName && href) {
+          if (!external) {
+            e.preventDefault();
+          }
+          return trackElement(anchor).then(() => {
+            if (!external) location.href = href;
+          });
+        }
+      } else {
+        trackElement(el);
+      }
+    };
+
+    document.addEventListener('click', callback, true);
   };
 
-  /* Global */
+  const observeTitle = () => {
+    const callback = ([entry]) => {
+      title = entry && entry.target ? entry.target.text : undefined;
+    };
 
-  if (!window.umami) {
-    const umami = eventValue => trackEvent(eventValue);
-    umami.trackView = trackView;
-    umami.trackEvent = trackEvent;
+    const observer = new MutationObserver(callback);
 
-    window.umami = umami;
-  }
+    const node = document.querySelector('head > title');
+
+    if (node) {
+      observer.observe(node, {
+        subtree: true,
+        characterData: true,
+        childList: true,
+      });
+    }
+  };
+
+  const send = payload => {
+    if (trackingDisabled()) return;
+    const headers = {
+      'Content-Type': 'application/json',
+    };
+    if (typeof cache !== 'undefined') {
+      headers['x-umami-cache'] = cache;
+    }
+    return fetch(endpoint, {
+      method: 'POST',
+      body: JSON.stringify({ type: 'event', payload }),
+      headers,
+    })
+      .then(res => res.text())
+      .then(text => (cache = text));
+  };
+
+  const track = (obj, data) => {
+    if (typeof obj === 'string') {
+      return send({
+        ...getPayload(),
+        name: obj,
+        data: typeof data === 'object' ? data : undefined,
+      });
+    } else if (typeof obj === 'object') {
+      return send(obj);
+    } else if (typeof obj === 'function') {
+      return send(obj(getPayload()));
+    }
+    return send(getPayload());
+  };
 
   /* Start */
+
+  if (!window.umami) {
+    window.umami = {
+      track,
+    };
+  }
+
+  let currentUrl = `${pathname}${search}`;
+  let currentRef = document.referrer;
+  let title = document.title;
+  let cache;
+  let initialized;
 
   if (autoTrack && !trackingDisabled()) {
     history.pushState = hook(history, 'pushState', handlePush);
     history.replaceState = hook(history, 'replaceState', handlePush);
+    handleClick();
+    observeTitle();
 
-    const update = () => {
-      if (document.readyState === 'complete') {
-        trackView();
-
-        if (cssEvents) {
-          addEvents(document);
-          observeDocument();
-        }
+    const init = () => {
+      if (document.readyState === 'complete' && !initialized) {
+        track();
+        initialized = true;
       }
     };
 
-    document.addEventListener('readystatechange', update, true);
+    document.addEventListener('readystatechange', init, true);
 
-    update();
+    init();
   }
 })(window);

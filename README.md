@@ -36,6 +36,7 @@ DATABASE_URL=connection-url
 ```
 
 The connection url is in the following format:
+
 ```
 postgresql://username:mypassword@localhost:5432/mydb
 
@@ -48,13 +49,7 @@ mysql://username:mypassword@localhost:3306/mydb
 yarn build
 ```
 
-### Create database tables
-
-```bash
-yarn update-db
-```
-
-This will also create a login account with username **admin** and password **umami**.
+The build step will also create tables in your database if you ae installing for the first time. It will also create a login user with username **admin** and password **umami**.
 
 ### Start the application
 
@@ -71,17 +66,19 @@ or change the [port](https://nextjs.org/docs/api-reference/cli#production) to se
 To build the umami container and start up a Postgres database, run:
 
 ```bash
-docker-compose up
+docker compose up -d
 ```
 
 Alternatively, to pull just the Umami Docker image with PostgreSQL support:
+
 ```bash
-docker pull docker.umami.is/umami-software/umami:postgresql-latest
+docker pull docker.umami.dev/umami-software/umami:postgresql-latest
 ```
 
 Or with MySQL support:
+
 ```bash
-docker pull docker.umami.is/umami-software/umami:mysql-latest
+docker pull docker.umami.dev/umami-software/umami:mysql-latest
 ```
 
 ## Getting updates
@@ -92,14 +89,13 @@ To get the latest features, simply do a pull, install any new dependencies, and 
 git pull
 yarn install
 yarn build
-yarn update-db
 ```
 
 To update the Docker image, simply pull the new images and rebuild:
 
 ```bash
-docker-compose pull
-docker-compose up --force-recreate
+docker compose pull
+docker compose up --force-recreate
 ```
 
 ## License

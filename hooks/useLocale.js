@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/router';
-import { get, setItem } from 'lib/web';
+import { get, setItem } from 'next-basics';
 import { LOCALE_CONFIG } from 'lib/constants';
 import { getDateLocale, getTextDirection } from 'lib/lang';
 import useStore, { setLocale } from 'store/app';
@@ -35,6 +35,8 @@ export default function useLocale() {
 
     setItem(LOCALE_CONFIG, value);
 
+    document.getElementById('__next')?.setAttribute('dir', getTextDirection(value));
+
     if (locale !== value) {
       setLocale(value);
     } else {
@@ -47,6 +49,15 @@ export default function useLocale() {
       saveLocale(locale);
     }
   }, [locale]);
+
+  useEffect(() => {
+    const url = new URL(window?.location?.href);
+    const locale = url.searchParams.get('locale');
+
+    if (locale) {
+      saveLocale(locale);
+    }
+  }, []);
 
   return { locale, saveLocale, messages, dir, dateLocale };
 }

@@ -1,20 +1,21 @@
-import React, { useMemo } from 'react';
-import { FormattedMessage } from 'react-intl';
+import { useMemo } from 'react';
+import { Loading, Icon, Text, Button } from 'react-basics';
+import Link from 'next/link';
 import firstBy from 'thenby';
 import classNames from 'classnames';
-import Link from 'components/common/Link';
-import Loading from 'components/common/Loading';
-import useFetch from 'hooks/useFetch';
-import Arrow from 'assets/arrow-right.svg';
+import useApi from 'hooks/useApi';
 import { percentFilter } from 'lib/filters';
 import useDateRange from 'hooks/useDateRange';
 import usePageQuery from 'hooks/usePageQuery';
 import ErrorMessage from 'components/common/ErrorMessage';
 import DataTable from './DataTable';
 import { DEFAULT_ANIMATION_DURATION } from 'lib/constants';
+import Icons from 'components/icons';
+import useMessages from 'hooks/useMessages';
 import styles from './MetricsTable.module.css';
+import useLocale from 'hooks/useLocale';
 
-export default function MetricsTable({
+export function MetricsTable({
   websiteId,
   type,
   className,
@@ -22,64 +23,74 @@ export default function MetricsTable({
   filterOptions,
   limit,
   onDataLoad,
+  delay = null,
   ...props
 }) {
   const [{ startDate, endDate, modified }] = useDateRange(websiteId);
   const {
-    resolve,
+    resolveUrl,
     router,
-    query: { url, referrer, os, browser, device, country },
+    query: { url, referrer, os, browser, device, country, region, city },
   } = usePageQuery();
+  const { formatMessage, labels } = useMessages();
+  const { get, useQuery } = useApi();
 
-  const { data, loading, error } = useFetch(
-    `/website/${websiteId}/metrics`,
-    {
-      params: {
+  const { data, isLoading, isFetched, error } = useQuery(
+    [
+      'websites:metrics',
+      { websiteId, type, modified, url, referrer, os, browser, device, country, region, city },
+    ],
+    () =>
+      get(`/websites/${websiteId}/metrics`, {
         type,
-        start_at: +startDate,
-        end_at: +endDate,
+        startAt: +startDate,
+        endAt: +endDate,
         url,
         referrer,
         os,
         browser,
         device,
         country,
-      },
-      onDataLoad,
-      delay: DEFAULT_ANIMATION_DURATION,
-    },
-    [modified, url, referrer, os, browser, device, country],
+        region,
+        city,
+      }),
+    { onSuccess: onDataLoad, retryDelay: delay || DEFAULT_ANIMATION_DURATION },
   );
 
   const filteredData = useMemo(() => {
     if (data) {
-      const items = percentFilter(dataFilter ? dataFilter(data, filterOptions) : data);
+      let items = percentFilter(dataFilter ? dataFilter(data, filterOptions) : data);
       if (limit) {
-        return items.filter((e, i) => i < limit).sort(firstBy('y', -1).thenBy('x'));
+        items = items.filter((e, i) => i < limit);
+      }
+      if (filterOptions?.sort === false) {
+        return items;
       }
       return items.sort(firstBy('y', -1).thenBy('x'));
     }
     return [];
   }, [data, error, dataFilter, filterOptions]);
+  const { dir } = useLocale();
 
   return (
     <div className={classNames(styles.container, className)}>
-      {!data && loading && <Loading />}
+      {!data && isLoading && !isFetched && <Loading icon="dots" />}
       {error && <ErrorMessage />}
       {data && !error && <DataTable {...props} data={filteredData} className={className} />}
       <div className={styles.footer}>
         {data && !error && limit && (
-          <Link
-            icon={<Arrow />}
-            href={router.pathname}
-            as={resolve({ view: type })}
-            size="small"
-            iconRight
-          >
-            <FormattedMessage id="label.more" defaultMessage="More" />
+          <Link href={router.pathname} as={resolveUrl({ view: type })}>
+            <Button variant="quiet">
+              <Text>{formatMessage(labels.more)}</Text>
+              <Icon size="sm" rotate={dir === 'rtl' ? 180 : 0}>
+                <Icons.ArrowRight />
+              </Icon>
+            </Button>
           </Link>
         )}
       </div>
     </div>
   );
 }
+
+export default MetricsTable;
